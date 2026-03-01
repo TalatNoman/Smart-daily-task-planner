@@ -135,11 +135,18 @@
 
             useEffect(() => {
                 // Ensure icons and UI are ready
-                setTimeout(() => {
+                const timer = setTimeout(() => {
                     if (window.lucide) window.lucide.createIcons();
                     setIsReady(true);
                 }, 100);
+                return () => clearTimeout(timer);
             }, []);
+
+            useEffect(() => {
+                if (isReady && window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, [tasks, isReady]);
 
             const completedCount = tasks.filter(t => t.completed).length;
             const progress = tasks.length > 0 ? (completedCount / tasks.length) * 100 : 0;
@@ -306,11 +313,6 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
 
-        // Observer for dynamic elements
-        const observer = new MutationObserver(() => {
-            if (window.lucide) window.lucide.createIcons();
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
     </script>
 
 </body>
