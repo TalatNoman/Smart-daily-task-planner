@@ -12,55 +12,59 @@
     <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    :root {
-    --bg-color: #030712;
-    --text-color: #f3f4f6;
-    --card-bg: rgba(31, 41, 55, 0.5);
-    --border-color: rgba(75, 85, 99, 0.3);
-    --input-bg: #111827;
-    }
+    <style>
+        :root {
+            --bg-color: #030712;
+            --text-color: #f3f4f6;
+            --card-bg: rgba(31, 41, 55, 0.5);
+            --border-color: rgba(75, 85, 99, 0.3);
+            --input-bg: #111827;
+        }
 
-    body.light-mode {
-    --bg-color: #f9fafb;
-    --text-color: #111827;
-    --card-bg: rgba(255, 255, 255, 0.8);
-    --border-color: rgba(209, 213, 219, 0.5);
-    --input-bg: #ffffff;
-    }
+        body.light-mode {
+            --bg-color: #f9fafb;
+            --text-color: #111827;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --border-color: rgba(209, 213, 219, 0.5);
+            --input-bg: #ffffff;
+        }
 
-    body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    margin: 0;
-    overflow-x: hidden;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
 
-    .electric-blue-glow {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
-    }
+        .electric-blue-glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+        }
 
-    .task-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--border-color);
-    }
+        .task-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+        }
 
-    .input-style {
-    background-color: var(--input-bg);
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    }
+        .input-style {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            outline: none;
+        }
 
-    ::-webkit-scrollbar {
-    width: 6px;
-    }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
 
-    ::-webkit-scrollbar-thumb {
-    background: #3b82f6;
-    border-radius: 10px;
-    }
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+    </style>
 
     <script>
         tailwind.config = {
@@ -154,15 +158,15 @@
             });
             const [isReady, setIsReady] = useState(false);
 
-            // Simple audio base64 for Success and Delete
+            // Verified short sounds: Pop/Success
             const playSound = (type) => {
                 const sounds = {
-                    success: 'data:audio/wav;base64,UklGRnoAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVpvAACAasfS0tLS0tLSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk=',
-                    delete: 'data:audio/wav;base64,UklGRnoAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVpvAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg=',
+                    success: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3',
+                    delete: 'https://assets.mixkit.co/active_storage/sfx/2566/2566-preview.mp3',
                 };
                 const audio = new Audio(sounds[type]);
-                audio.volume = 0.2;
-                audio.play().catch(e => console.log('Audio disabled by browser'));
+                audio.volume = 0.4;
+                audio.play().catch(e => console.log('Audio blocked:', e));
             };
 
             useEffect(() => {
@@ -187,7 +191,7 @@
                 if (isReady && window.lucide) {
                     window.lucide.createIcons();
                 }
-            }, [tasks, isReady]);
+            }, [tasks, isReady, theme]);
 
             const completedCount = tasks.filter(t => t.completed).length;
             const progress = tasks.length > 0 ? (completedCount / tasks.length) * 100 : 0;
@@ -316,10 +320,11 @@
                                 <h2 className="text-lg font-bold">Today's Tasks</h2>
                                 <button
                                     onClick={clearAll}
-                                    className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-500/10 transition-all"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all uppercase tracking-tighter"
                                     title="Clear All Tasks"
                                 >
-                                    <i data-lucide="refresh-cw" className="w-4 h-4"></i>
+                                    <i data-lucide="trash-2" className="w-4 h-4"></i>
+                                    <span>Clear All</span>
                                 </button>
                             </div>
                             <button
