@@ -12,34 +12,56 @@
     <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #030712;
-            color: #f3f4f6;
-            margin: 0;
-            overflow-x: hidden;
-        }
+    :root {
+    --bg-color: #030712;
+    --text-color: #f3f4f6;
+    --card-bg: rgba(31, 41, 55, 0.5);
+    --border-color: rgba(75, 85, 99, 0.3);
+    --input-bg: #111827;
+    }
 
-        .electric-blue-glow {
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
-        }
+    body.light-mode {
+    --bg-color: #f9fafb;
+    --text-color: #111827;
+    --card-bg: rgba(255, 255, 255, 0.8);
+    --border-color: rgba(209, 213, 219, 0.5);
+    --input-bg: #ffffff;
+    }
 
-        .task-card {
-            background: rgba(31, 41, 55, 0.5);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(75, 85, 99, 0.3);
-        }
+    body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    }
 
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
+    .electric-blue-glow {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+    }
 
-        ::-webkit-scrollbar-thumb {
-            background: #3b82f6;
-            border-radius: 10px;
-        }
-    </style>
+    .task-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    }
+
+    .input-style {
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    }
+
+    ::-webkit-scrollbar {
+    width: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+    background: #3b82f6;
+    border-radius: 10px;
+    }
+
     <script>
         tailwind.config = {
             theme: {
@@ -127,7 +149,26 @@
             const [input, setInput] = useState('');
             const [priority, setPriority] = useState('Medium');
             const [dueDate, setDueDate] = useState('');
+            const [theme, setTheme] = useState(() => {
+                return localStorage.getItem('planner-theme') || 'dark';
+            });
             const [isReady, setIsReady] = useState(false);
+
+            // Simple audio base64 for Success and Delete
+            const playSound = (type) => {
+                const sounds = {
+                    success: 'data:audio/wav;base64,UklGRnoAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVpvAACAasfS0tLS0tLSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSk=',
+                    delete: 'data:audio/wav;base64,UklGRnoAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVpvAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg=',
+                };
+                const audio = new Audio(sounds[type]);
+                audio.volume = 0.2;
+                audio.play().catch(e => console.log('Audio disabled by browser'));
+            };
+
+            useEffect(() => {
+                document.body.className = theme === 'light' ? 'light-mode' : '';
+                localStorage.setItem('planner-theme', theme);
+            }, [theme]);
 
             useEffect(() => {
                 localStorage.setItem('smart-planner-tasks', JSON.stringify(tasks));
@@ -168,11 +209,26 @@
             };
 
             const toggleTask = (id) => {
-                setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+                const newTasks = tasks.map(t => {
+                    if (t.id === id) {
+                        if (!t.completed) playSound('success');
+                        return { ...t, completed: !t.completed };
+                    }
+                    return t;
+                });
+                setTasks(newTasks);
             };
 
             const deleteTask = (id) => {
+                playSound('delete');
                 setTasks(tasks.filter(t => t.id !== id));
+            };
+
+            const clearAll = () => {
+                if (window.confirm('Are you sure you want to clear all tasks?')) {
+                    playSound('delete');
+                    setTasks([]);
+                }
             };
 
             const smartSort = () => {
@@ -205,11 +261,22 @@
                         animate={{ opacity: 1, y: 0 }}
                         className="w-full flex flex-col items-center"
                     >
-                        <header className="text-center mb-8">
-                            <h1 className="text-4xl font-black bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent mb-2">
-                                Daily Planner
-                            </h1>
-                            <p className="text-gray-500 text-sm tracking-widest uppercase">Agent-Aware Interface</p>
+                        <header className="w-full flex justify-between items-start mb-8">
+                            <div className="flex-1"></div>
+                            <div className="text-center">
+                                <h1 className="text-4xl font-black bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent mb-2">
+                                    Daily Planner
+                                </h1>
+                                <p className="text-gray-500 text-sm tracking-widest uppercase">Agent-Aware Interface</p>
+                            </div>
+                            <div className="flex-1 flex justify-end">
+                                <button
+                                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                                    className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-all"
+                                >
+                                    <i data-lucide={theme === 'dark' ? 'sun' : 'moon'} className="w-6 h-6"></i>
+                                </button>
+                            </div>
                         </header>
 
                         <CircularProgress percentage={progress} />
@@ -220,13 +287,13 @@
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 placeholder="What needs to be done?"
-                                className="w-full bg-brand-card border border-gray-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-blue/50 transition-all font-medium text-white"
+                                className="w-full input-style rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-blue/50 transition-all font-medium"
                             />
                             <div className="flex flex-col sm:flex-row gap-2">
                                 <select
                                     value={priority}
                                     onChange={(e) => setPriority(e.target.value)}
-                                    className="w-full sm:flex-1 bg-brand-card border border-gray-800 rounded-xl px-4 py-3 text-sm focus:outline-none text-white"
+                                    className="w-full sm:flex-1 input-style rounded-xl px-4 py-3 text-sm focus:outline-none"
                                 >
                                     <option>Low Priority</option>
                                     <option>Medium Priority</option>
@@ -236,7 +303,7 @@
                                     type="date"
                                     value={dueDate}
                                     onChange={(e) => setDueDate(e.target.value)}
-                                    className="w-full sm:flex-1 bg-brand-card border border-gray-800 rounded-xl px-4 py-3 text-sm focus:outline-none text-white appearance-none"
+                                    className="w-full sm:flex-1 input-style rounded-xl px-4 py-3 text-sm focus:outline-none appearance-none"
                                 />
                                 <button type="submit" className="w-full sm:w-auto bg-brand-blue hover:bg-blue-600 text-white px-6 py-3 rounded-xl transition-all font-bold">
                                     ADD
@@ -245,7 +312,16 @@
                         </form>
 
                         <div className="w-full flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-bold">Today's Tasks</h2>
+                            <div className="flex items-center gap-3">
+                                <h2 className="text-lg font-bold">Today's Tasks</h2>
+                                <button
+                                    onClick={clearAll}
+                                    className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-500/10 transition-all"
+                                    title="Clear All Tasks"
+                                >
+                                    <i data-lucide="refresh-cw" className="w-4 h-4"></i>
+                                </button>
+                            </div>
                             <button
                                 onClick={smartSort}
                                 className="flex items-center gap-2 text-xs font-bold text-brand-blue border border-brand-blue/30 px-3 py-1.5 rounded-full hover:bg-brand-blue/10 transition-all uppercase tracking-wider"
