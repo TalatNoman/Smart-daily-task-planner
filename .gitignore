@@ -1,0 +1,6 @@
+# Simple .gitignore for web projects
+node_modules/
+.DS_Store
+.env
+dist/
+build/
